@@ -1,12 +1,18 @@
 package com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrder;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.repository.PurchaseOrderRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
+
+import java.time.LocalDate;
 
 @Component
 @AllArgsConstructor
 public class InventoryHelper {
+
+    PurchaseOrderRepository purchaseOrderRepository;
 
     public void addToInventory(Inventory inventory, int amount){
         inventory.setQuantity(inventory.getQuantity() + amount);
@@ -26,6 +32,14 @@ public class InventoryHelper {
     }
 
     private void automaticReorder(Inventory inventory, int difference){
-// add purchase order class
+
+        PurchaseOrder purchaseOrder = PurchaseOrder.builder()
+                .dateOfPurchase(LocalDate.now())
+                .netPrice(inventory.getProduct().getUnitCost())
+                .product(inventory.getProduct())
+                .amount(difference)
+                .build();
+
+        purchaseOrderRepository.save(purchaseOrder);
     }
 }

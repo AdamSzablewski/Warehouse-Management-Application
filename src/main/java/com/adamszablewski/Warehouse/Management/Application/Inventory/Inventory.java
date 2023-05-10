@@ -9,6 +9,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Data
@@ -30,8 +31,7 @@ public class Inventory {
     @ManyToOne
     private Warehouse warehouse;
 
-    @Temporal(TemporalType.TIMESTAMP)
-    private Date dateAdded;
+    private LocalDate dateAdded;
 
     private int quantity;
 
