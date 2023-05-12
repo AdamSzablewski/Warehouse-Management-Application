@@ -1,7 +1,7 @@
 package com.adamszablewski.Warehouse.Management.Application.warehouse.controllers;
 
 import com.adamszablewski.Warehouse.Management.Application.warehouse.Warehouse;
-import com.adamszablewski.Warehouse.Management.Application.warehouse.services.WarehouseServiceGET;
+import com.adamszablewski.Warehouse.Management.Application.warehouse.services.WarehouseService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +14,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class WarehouseControllerGET {
 
-    WarehouseServiceGET warehouseServiceGET;
+    WarehouseService warehouseServiceGET;
 
 
     @GetMapping("/warehouses")

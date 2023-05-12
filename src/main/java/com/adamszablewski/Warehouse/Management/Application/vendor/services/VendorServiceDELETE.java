@@ -2,6 +2,7 @@ package com.adamszablewski.Warehouse.Management.Application.vendor.services;
 
 import com.adamszablewski.Warehouse.Management.Application.vendor.ropository.VendorRepository;
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

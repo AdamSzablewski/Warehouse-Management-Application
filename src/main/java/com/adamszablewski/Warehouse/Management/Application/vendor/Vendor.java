@@ -1,10 +1,8 @@
 package com.adamszablewski.Warehouse.Management.Application.vendor;
 
+import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Entity
 public class Vendor {
 
     @Id

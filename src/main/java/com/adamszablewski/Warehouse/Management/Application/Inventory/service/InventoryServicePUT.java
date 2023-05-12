@@ -21,7 +21,6 @@ public class InventoryServicePUT {
 
         Inventory inventory = optionalInventory.get();
         inventory.setName(inventoryInfo.getName());
-        inventory.setDateAdded(inventoryInfo.getDateAdded());
         inventory.setQuantity(inventory.getQuantity());
         inventory.setMaximumOrderQuantity(inventory.getMaximumOrderQuantity());
         inventory.setMaximumStockLevel(inventory.getMinimumStockLevel());

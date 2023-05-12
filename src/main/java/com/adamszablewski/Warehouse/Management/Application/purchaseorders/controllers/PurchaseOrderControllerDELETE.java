@@ -1,7 +1,6 @@
 package com.adamszablewski.Warehouse.Management.Application.purchaseorders.controllers;
 
-import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderServiceDELETE;
-import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderServiceGET;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -9,7 +8,9 @@ import org.springframework.web.bind.annotation.RestController;
 @AllArgsConstructor
 public class PurchaseOrderControllerDELETE {
 
-    PurchaseOrderServiceDELETE purchaseOrderServiceDELETE;
+    PurchaseOrderService purchaseOrderServiceDELETE;
+
+
 
 
 }

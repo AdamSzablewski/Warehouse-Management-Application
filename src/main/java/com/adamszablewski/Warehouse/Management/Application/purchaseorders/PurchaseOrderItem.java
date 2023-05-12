@@ -1,39 +1,24 @@
 package com.adamszablewski.Warehouse.Management.Application.purchaseorders;
 
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @AllArgsConstructor
 @Builder
 @Entity
-public class PurchaseOrder {
+public class PurchaseOrderItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    int POid;
-
-    @OneToMany
-    private List<PurchaseOrderItem> products;
-
-    boolean delivered;
-
+    private int id;
+    private String name;
     private double netPrice;
-
     private int amount;
-
-    LocalDate dateOfPurchase;
-
-    LocalDate dateOfDelivery;
-
-
-
-
-
 }

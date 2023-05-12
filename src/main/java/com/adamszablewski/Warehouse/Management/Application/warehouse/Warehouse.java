@@ -25,7 +25,7 @@ public class Warehouse {
     private String province;
     private String zipCode;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Inventory> inventory;
 
 

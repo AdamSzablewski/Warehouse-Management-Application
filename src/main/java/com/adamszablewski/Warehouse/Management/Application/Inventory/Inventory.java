@@ -1,6 +1,7 @@
 package com.adamszablewski.Warehouse.Management.Application.Inventory;
 
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
+import com.adamszablewski.Warehouse.Management.Application.vendor.Vendor;
 import com.adamszablewski.Warehouse.Management.Application.warehouse.Warehouse;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -25,13 +26,14 @@ public class Inventory {
 
     private String name;
 
-    @ManyToOne
+    @OneToOne
     private Product product;
 
     @ManyToOne
     private Warehouse warehouse;
 
-    private LocalDate dateAdded;
+    @OneToOne
+    private Vendor vendor;
 
     private int quantity;
 
