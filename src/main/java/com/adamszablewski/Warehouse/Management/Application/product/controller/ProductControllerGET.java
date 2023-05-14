@@ -1,7 +1,8 @@
 package com.adamszablewski.Warehouse.Management.Application.product.controller;
 
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
-import com.adamszablewski.Warehouse.Management.Application.product.service.ProductServiceGetter;
+import com.adamszablewski.Warehouse.Management.Application.product.service.ProductService;
+
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,7 +15,7 @@ import java.util.Optional;
 @AllArgsConstructor
 public class ProductControllerGET {
 
-    ProductServiceGetter productService;
+    ProductService productService;
 
     @GetMapping("/products")
     public List<Product> retrieveAll(){

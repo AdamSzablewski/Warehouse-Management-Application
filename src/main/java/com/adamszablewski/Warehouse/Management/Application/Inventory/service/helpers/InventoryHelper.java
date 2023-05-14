@@ -16,24 +16,25 @@ public class InventoryHelper {
 
     PurchaseOrderRepository purchaseOrderRepository;
 
-    public void addToInventory(Inventory inventory, int amount){
-        inventory.setQuantity(inventory.getQuantity() + amount);
+    public int addToInventory(Inventory inventory, int amount){int updatedInventoryLevel = inventory.getQuantity() + amount;
+       inventory.setQuantity(updatedInventoryLevel);
+       return updatedInventoryLevel;
     }
 
-    public boolean removeFromInventory(Inventory inventory, int amount){
+    public Inventory removeFromInventory(Inventory inventory, int amount){
         if (inventory.getQuantity() - amount > inventory.getMinimumStockLevel()){
             int quantityAfter = inventory.getQuantity() - amount;
             int difference = inventory.getMinimumStockLevel() - quantityAfter;
             automaticReorder(inventory, difference);
         }
         if (inventory.getQuantity() - amount < 0) {
-            return false;
+            return null;
         }
         inventory.setQuantity(inventory.getQuantity() - amount);
-        return true;
+        return inventory;
     }
 
-    private void automaticReorder(Inventory inventory, int difference){
+    private PurchaseOrder automaticReorder(Inventory inventory, int difference){
 
         int minimumPurchaseAmount = 0;
         if (inventory.getReorderQuantity() >= difference){
@@ -58,5 +59,6 @@ public class InventoryHelper {
                 .build();
 
         purchaseOrderRepository.save(purchaseOrder);
+        return purchaseOrder;
     }
 }
