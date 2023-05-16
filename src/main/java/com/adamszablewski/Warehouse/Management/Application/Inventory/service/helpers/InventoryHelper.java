@@ -1,20 +1,31 @@
 package com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
+import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrder;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.repository.PurchaseOrderRepository;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderService;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.purchaseOrderHelpers.PurchaseOrderHelper;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @AllArgsConstructor
 public class InventoryHelper {
 
     PurchaseOrderRepository purchaseOrderRepository;
+    //PurchaseOrderService purchaseOrderService;
+    PurchaseOrderHelper purchaseOrderHelper;
+
+
+
 
     public int addToInventory(Inventory inventory, int amount){int updatedInventoryLevel = inventory.getQuantity() + amount;
        inventory.setQuantity(updatedInventoryLevel);
@@ -22,19 +33,22 @@ public class InventoryHelper {
     }
 
     public Inventory removeFromInventory(Inventory inventory, int amount){
-        if (inventory.getQuantity() - amount > inventory.getMinimumStockLevel()){
-            int quantityAfter = inventory.getQuantity() - amount;
+        int theoreticalQuantity = inventory.getQuantity() + inventory.getAwaitedQuantity();
+
+        if (inventory.getQuantity() - amount < inventory.getMinimumStockLevel()){
+            int quantityAfter = theoreticalQuantity - amount;
             int difference = inventory.getMinimumStockLevel() - quantityAfter;
             automaticReorder(inventory, difference);
         }
-        if (inventory.getQuantity() - amount < 0) {
-            return null;
-        }
-        inventory.setQuantity(inventory.getQuantity() - amount);
+
+            inventory.setQuantity(inventory.getQuantity() - amount);
+
+
+
         return inventory;
     }
 
-    private PurchaseOrder automaticReorder(Inventory inventory, int difference){
+    public PurchaseOrder automaticReorder(Inventory inventory, int difference){
 
         int minimumPurchaseAmount = 0;
         if (inventory.getReorderQuantity() >= difference){
@@ -58,7 +72,9 @@ public class InventoryHelper {
                 .netPrice(inventory.getProduct().getUnitCost()*minimumPurchaseAmount)
                 .build();
 
-        purchaseOrderRepository.save(purchaseOrder);
+        purchaseOrderHelper.purchase(purchaseOrder);
         return purchaseOrder;
     }
+
+
 }

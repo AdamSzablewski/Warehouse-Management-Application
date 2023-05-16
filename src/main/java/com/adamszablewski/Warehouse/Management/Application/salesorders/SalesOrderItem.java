@@ -7,12 +7,14 @@ import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @Entity
 @Builder
+@NoArgsConstructor
 public class SalesOrderItem {
 
     @Id

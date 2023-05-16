@@ -8,12 +8,14 @@ import com.adamszablewski.Warehouse.Management.Application.purchaseorders.Purcha
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.repository.PurchaseOrderRepository;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderService;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.purchaseOrderHelpers.PurchaseOrderHelper;
 import com.adamszablewski.Warehouse.Management.Application.warehouse.services.WarehouseService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -43,9 +45,13 @@ public class PurchaseOrderServiceTest {
     @Mock
     PurchaseOrderRepository purchaseOrderRepository;
 
+    @Mock
+    PurchaseOrderHelper purchaseOrderHelper;
+
     @BeforeEach
     void setUp(){
-        purchaseOrderService = new PurchaseOrderService(purchaseOrderRepository, inventoryHelper, inventoryRepository);
+        purchaseOrderService = new PurchaseOrderService(
+                purchaseOrderRepository, inventoryHelper, inventoryRepository, purchaseOrderHelper);
     }
 
     @Test
@@ -60,11 +66,11 @@ public class PurchaseOrderServiceTest {
                 .build();
 
         PurchaseOrderItem p1 = PurchaseOrderItem.builder()
-                .amount(2)
+                .amount(30)
                 .netPrice(pr1.getUnitCost())
                 .build();
         PurchaseOrderItem p2 = PurchaseOrderItem.builder()
-                .amount(4)
+                .amount(30)
                 .netPrice(pr2.getUnitCost())
                 .build();
 

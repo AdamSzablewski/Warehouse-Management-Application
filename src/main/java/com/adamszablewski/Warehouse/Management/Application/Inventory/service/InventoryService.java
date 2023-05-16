@@ -94,6 +94,7 @@ public class InventoryService {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                     .body("Amount to be removed exceeds the amount of stored units");
         }
+        inventory = updatedInventory;
         inventoryRepository.save(inventory);
 
         return ResponseEntity.ok("Items added successfully");
@@ -112,9 +113,10 @@ public class InventoryService {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                     .body("Amount to be removed exceeds the amount of stored units");
         }
+        inventory = updatedInventory;
         inventoryRepository.save(inventory);
 
-        return ResponseEntity.ok("Items added successfully");
+        return ResponseEntity.ok("Items removed successfully");
     }
 
     public ResponseEntity<String> createInventory(Inventory inventory) {

@@ -7,12 +7,14 @@ import com.adamszablewski.Warehouse.Management.Application.product.Product;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrder;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.repository.PurchaseOrderRepository;
+import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.purchaseOrderHelpers.PurchaseOrderHelper;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,10 +27,10 @@ public class PurchaseOrderService {
 
     InventoryRepository inventoryRepository;
 
+    PurchaseOrderHelper purchaseOrderHelper;
+
     public ResponseEntity<String> purchase(PurchaseOrder purchaseOrder) {
-        purchaseOrderRepository.save(purchaseOrder);
-        //sending it out
-        return ResponseEntity.ok("Purchase order sent succesfully to the vendor");
+        return purchaseOrderHelper.purchase(purchaseOrder);
     }
 
 
@@ -47,7 +49,8 @@ public class PurchaseOrderService {
                 //add error
             }else {
                 Inventory inventory = optionalInventory.get();
-                inventoryHelper.addToInventory(inventory, purchaseOrder.getAmount());
+                inventoryHelper.addToInventory(inventory, p.getAmount());
+                inventory.setAwaitedQuantity(inventory.getAwaitedQuantity() - p.getAmount());
                 inventoryRepository.save(inventory);
             }
 
@@ -61,5 +64,14 @@ public class PurchaseOrderService {
 
         return ResponseEntity.ok("Products successfully added to inventory");
 
+    }
+
+    public List<PurchaseOrder> getAllPurchaseOrders() {
+        System.out.println("called");
+        return purchaseOrderRepository.findAll();
+    }
+
+    public Optional<PurchaseOrder> getPurchaseOrderById(int id) {
+        return purchaseOrderRepository.findById(id);
     }
 }

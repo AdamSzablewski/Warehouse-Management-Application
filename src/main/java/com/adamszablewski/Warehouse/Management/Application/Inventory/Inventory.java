@@ -37,13 +37,13 @@ public class Inventory {
 
     private int quantity;
 
+    private int awaitedQuantity;
+
     private int minimumStockLevel;
 
     private int maximumStockLevel;
 
     private int reorderQuantity;
-
-    private int minimumOrderQuantity;
 
     private int maximumOrderQuantity;
 

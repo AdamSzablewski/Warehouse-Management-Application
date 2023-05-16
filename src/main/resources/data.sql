@@ -16,11 +16,11 @@ INSERT INTO VENDOR (id, name, address, email, phone) VALUES
 (3, 'Vendor 3', '789 Oak St.', 'vendor3@example.com', '555-9012');
 
 
-  INSERT INTO INVENTORY(name, product_id, warehouse_id, vendor_id, quantity, minimum_stock_level, maximum_stock_level, reorder_quantity, minimum_order_quantity, maximum_order_quantity, storage_location)
+  INSERT INTO INVENTORY(name, product_id, warehouse_id, vendor_id, quantity, awaited_quantity, minimum_stock_level, maximum_stock_level, reorder_quantity, maximum_order_quantity, storage_location)
   VALUES
-  ('Hammer', 1, 1, 1, 100, 10, 200, 20, 50, 500, 'A1'),
-  ('Screwdriver', 1, 1, 2, 150, 15, 300, 30, 75, 750, 'B2'),
-  ('Wrench', 3, 1, 3, 75, 5, 150, 15, 25, 250, 'C3'),
-  ('Pliers', 4, 1, 2, 200, 20, 400, 40, 100, 1000, 'D4'),
-  ('Circular Saw', 5, 1, 1, 20, 2, 50, 5, 10, 100, 'E5');
+  ('Hammer', 1, 1, 1, 100,0, 50, 200, 20, 500, 'A1'),
+  ('Screwdriver', 1, 1, 2, 100,0, 50, 300, 30, 750, 'B2'),
+  ('Wrench', 3, 1, 3, 100,0, 50, 150, 15, 250, 'C3'),
+  ('Pliers', 4, 1, 2, 100 ,0, 50, 400, 40, 1000, 'D4'),
+  ('Circular Saw', 5, 1, 1, 100,0, 20, 50, 5, 100, 'E5');
 

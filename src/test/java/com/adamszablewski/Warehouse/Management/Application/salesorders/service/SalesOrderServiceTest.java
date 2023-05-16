@@ -4,7 +4,7 @@ import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.InventoryService;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
-import com.adamszablewski.Warehouse.Management.Application.purchaseorders.services.PurchaseOrderService;
+import com.adamszablewski.Warehouse.Management.Application.product.repository.ProductRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.repository.SalesOrderRepository;
@@ -30,6 +30,9 @@ public class SalesOrderServiceTest {
     SalesOrderRepository salesOrderRepository;
 
     SalesOrderService salesOrderService;
+
+    @Mock
+    ProductRepository productRepository;
     @Mock
     InventoryHelper inventoryHelper;
     @Mock
@@ -40,7 +43,7 @@ public class SalesOrderServiceTest {
     @BeforeEach
     void setUp(){
         salesOrderService = new SalesOrderService(salesOrderRepository, inventoryHelper,
-                inventoryRepository, inventoryService);
+                inventoryRepository, productRepository, inventoryService);
     }
 
     @Test
@@ -81,7 +84,7 @@ public class SalesOrderServiceTest {
 
 
 
-        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrder(1);
+        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToSent(1);
 
         assertThat(salesOrder.isInDelivery()).isTrue();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
