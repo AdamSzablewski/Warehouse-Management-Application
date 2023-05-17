@@ -24,7 +24,7 @@ public class InventoryControllerPATCH {
     }
     @PatchMapping("/inventories/id/{inventory_id}/remove/quantity/{amount}")
     public ResponseEntity<String> removeItemsToInventoryById(@PathVariable int inventory_id, @PathVariable int amount){
-        return inventoryService.removeItemsToInventoryById(inventory_id, amount);
+        return inventoryService.removeItemsFromInventoryById(inventory_id, amount);
     }
 
     @PatchMapping("/inventories/name/{name}/remove/quantity/{amount}")

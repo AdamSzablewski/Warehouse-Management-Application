@@ -25,11 +25,8 @@ public class PurchaseOrder {
     private List<PurchaseOrderItem> products;
 
     boolean delivered;
-
     private double netPrice;
-
     LocalDate dateOfPurchase;
-
     LocalDate dateOfDelivery;
 
 

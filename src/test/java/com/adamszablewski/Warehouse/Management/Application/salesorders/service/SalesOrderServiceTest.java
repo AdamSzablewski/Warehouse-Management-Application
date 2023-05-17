@@ -8,6 +8,7 @@ import com.adamszablewski.Warehouse.Management.Application.product.repository.Pr
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.repository.SalesOrderRepository;
+import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -39,11 +40,13 @@ public class SalesOrderServiceTest {
     InventoryRepository inventoryRepository;
     @Mock
     InventoryService inventoryService;
+    @Mock
+    SalesOrderConfirmationRepository salesOrderConfirmationRepository;
 
     @BeforeEach
     void setUp(){
         salesOrderService = new SalesOrderService(salesOrderRepository, inventoryHelper,
-                inventoryRepository, productRepository, inventoryService);
+                inventoryRepository, productRepository, inventoryService, salesOrderConfirmationRepository);
     }
 
     @Test
@@ -84,7 +87,7 @@ public class SalesOrderServiceTest {
 
 
 
-        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToSent(1);
+        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToRecieved(1);
 
         assertThat(salesOrder.isInDelivery()).isTrue();
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

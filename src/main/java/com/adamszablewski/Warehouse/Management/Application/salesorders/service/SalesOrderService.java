@@ -10,6 +10,7 @@ import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrde
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.repository.SalesOrderRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmation;
+import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,14 +26,11 @@ import java.util.Optional;
 public class SalesOrderService {
 
     SalesOrderRepository salesOrderRepository;
-
     InventoryHelper inventoryHelper;
-
     InventoryRepository inventoryRepository;
-
     ProductRepository productRepository;
-
     InventoryService inventoryService;
+    SalesOrderConfirmationRepository salesOrderConfirmationRepository;
 
 
     public List<SalesOrder> getAllSalesOrders() {
@@ -44,7 +42,7 @@ public class SalesOrderService {
     }
 
     public ResponseEntity<String> createSalesOrder(SalesOrder salesOrder) {
-        if (!areItemsValidChecker(salesOrder)){
+        if (!areItemsValidChecker(salesOrder)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some or all of the requested items are not valid");
         }
         salesOrder.setDateReceived(LocalDate.now());
@@ -55,13 +53,34 @@ public class SalesOrderService {
         return ResponseEntity.ok("Sales order sent");
     }
 
+    public ResponseEntity<String> changeStatusOfSalesOrderToRecieved(int id) {
+        Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
+        if (optionalSalesOrder.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+        SalesOrder salesOrder = optionalSalesOrder.get();
+        salesOrder.setOrderRecieved(true);
+        salesOrderRepository.save(salesOrder);
+        sendSalesOrderConfirmation(salesOrder);
+        inventoryHelper.createAutomaticReordersIfNeeded(salesOrder);
+        return ResponseEntity.ok("Status changed to received");
+    }
+
     public ResponseEntity<String> changeStatusOfSalesOrderToSent(int id) {
         Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
         if (optionalSalesOrder.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-
         SalesOrder salesOrder = optionalSalesOrder.get();
+
+        if (!salesOrder.isOrderRecieved()) {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                    .body("Status of sales order must first be changed to received");
+        }
+        if (!canCompleteOrder(salesOrder)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Not sufficient amount in inventory to complete order");
+        }
         salesOrder.setInDelivery(true);
         salesOrderRepository.save(salesOrder);
 
@@ -71,67 +90,104 @@ public class SalesOrderService {
 
             } else {
                 Inventory inventory = optionalInventory.get();
-                inventoryHelper.removeFromInventory(inventory, soi.getTotalAmount());
-                inventoryRepository.save(inventory);
+                if (inventory.getQuantity() - soi.getTotalAmount() > 0) {
+                    inventoryHelper.removeFromInventoryNoReorder(inventory, soi.getTotalAmount());
+                    inventoryRepository.save(inventory);
+                }
             }
         }
-        sendSalesOrderConfirmation(salesOrder);
         return ResponseEntity.ok("Status changed to sent");
     }
 
-    private SalesOrderConfirmation sendSalesOrderConfirmation(SalesOrder salesOrder) {
-        SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
-                .description("some text")
-                .purchaseOrder(salesOrder)
-                .deliveryDate(calculateDeliveryDate())
-                .build();
+    private boolean canCompleteOrder(SalesOrder salesOrder) {
+        for (SalesOrderItem soi : salesOrder.getItems()) {
+            Optional<Inventory> optionalInventory = inventoryService.retrieveInventoryByName(soi.getName());
+            if (optionalInventory.isEmpty()) {
 
-        //api
-        return salesOrderConfirmation;
+            } else {
+                Inventory inventory = optionalInventory.get();
+                if (inventoryHelper.checkIfReorderNeeded(inventory, soi.getTotalAmount())) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
     }
 
-    private LocalDate calculateDeliveryDate() {
-        LocalDate currentDate = LocalDate.now();
-        int workdaysToAdd = 14;
 
-        for (int i = 0; i < workdaysToAdd; i++) {
-            currentDate = currentDate.plusDays(1);
-            if (currentDate.getDayOfWeek() == DayOfWeek.SATURDAY || currentDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+        private SalesOrderConfirmation sendSalesOrderConfirmation (SalesOrder salesOrder){
+            SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
+                    .description("some text")
+                    .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
+                    .purchaseOrder(salesOrder)
+                    .deliveryDate(calculateDeliveryDate())
+                    .build();
+
+            salesOrderConfirmationRepository.save(salesOrderConfirmation);
+            //api
+            return salesOrderConfirmation;
+        }
+
+        private LocalDate calculateDeliveryDate () {
+            LocalDate currentDate = LocalDate.now();
+            int workdaysToAdd = 14;
+
+            for (int i = 0; i < workdaysToAdd; i++) {
                 currentDate = currentDate.plusDays(1);
+                if (currentDate.getDayOfWeek() == DayOfWeek.SATURDAY || currentDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
+                    currentDate = currentDate.plusDays(1);
+                }
             }
+
+            return currentDate;
         }
 
-        return currentDate;
-    }
-
-    public List<SalesOrder> getAllOrdersForCompany(String company) {
-        return salesOrderRepository.findAllByCompany(company);
-    }
-
-    private double calculateTotalAmountFromSalesOrder(SalesOrder salesOrder){
-        double total = 0;
-        for (SalesOrderItem soi : salesOrder.getItems()){
-            Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
-            Product product = optionalProduct.get();
-            total += soi.getTotalAmount() * product.getUnitCost();
+        public List<SalesOrder> getAllOrdersForCompany (String company){
+            return salesOrderRepository.findAllByCompany(company);
         }
-        return total;
-    }
 
-    private boolean areItemsValidChecker(SalesOrder salesOrder){
-        for (SalesOrderItem soi : salesOrder.getItems()){
-            Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
-            if (optionalProduct.isEmpty()){
-                return false;
+        private double calculateTotalAmountFromSalesOrder (SalesOrder salesOrder){
+            double total = 0;
+            for (SalesOrderItem soi : salesOrder.getItems()) {
+                Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
+                Product product = optionalProduct.get();
+                total += soi.getTotalAmount() * product.getUnitCost();
             }
+            return total;
         }
-        return true;
+
+        private boolean areItemsValidChecker (SalesOrder salesOrder){
+            for (SalesOrderItem soi : salesOrder.getItems()) {
+                Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
+                if (optionalProduct.isEmpty()) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public ResponseEntity<String> deleteSalesOrderById ( int id){
+            Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
+            if (optionalSalesOrder.isEmpty())
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such sales order exist");
+            salesOrderRepository.deleteById(id);
+            return ResponseEntity.ok("Sales order removed correctly");
+        }
+
+        public ResponseEntity<String> changeStatusOfSalesOrderToClosed ( int id){
+            Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
+            if (optionalSalesOrder.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+            }
+
+            SalesOrder salesOrder = optionalSalesOrder.get();
+            salesOrder.setTransactionClosed(true);
+            salesOrderRepository.save(salesOrder);
+
+            return ResponseEntity.ok("Status changed to closed");
+        }
+
+
     }
 
-    public ResponseEntity<String> deleteSalesOrderById(int id) {
-        Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
-        if (optionalSalesOrder.isEmpty()) return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such sales order exist");
-        salesOrderRepository.deleteById(id);
-        return ResponseEntity.ok("Sales order removed correctly");
-    }
-}

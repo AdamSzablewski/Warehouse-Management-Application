@@ -1,6 +1,8 @@
 package com.adamszablewski.Warehouse.Management.Application.salesorders;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -20,13 +22,26 @@ public class SalesOrder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private boolean inDelivery;
+    private boolean orderRecieved;
+    private boolean orderSent;
     private boolean transactionClosed;
     private String company;
+    private String buyerTrackingId;
 
+    @NotEmpty
+    private String deliveryAdress;
+
+    @NotNull
     @OneToMany(cascade = CascadeType.ALL)
     private List<SalesOrderItem> items;
+
     private LocalDate dateReceived;
     private double totalAmount;
+
+    @NotEmpty
     private String contactPerson;
+    @NotEmpty
     private String contactNumber;
+    @NotEmpty
+    private String contactEmail;
 }

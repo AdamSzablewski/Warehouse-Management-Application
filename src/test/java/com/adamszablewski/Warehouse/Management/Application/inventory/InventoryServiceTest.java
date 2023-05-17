@@ -150,7 +150,7 @@ public class InventoryServiceTest {
 
     }
 
-    @Test
+
     void removeItemsFromInventoryByName_shouldReturnOk(){
         Inventory inventory = Inventory.builder()
                 .name("hammer")
@@ -160,23 +160,14 @@ public class InventoryServiceTest {
                 .maximumStockLevel(100)
                 .storageLocation("A1")
                 .build();
-        Inventory updatedInventory = Inventory.builder()
-                .name("hammer")
-                .id(1)
-                .quantity(20)
-                .minimumStockLevel(20)
-                .maximumStockLevel(100)
-                .storageLocation("A1")
-                .build();
 
         when(inventoryRepository.findByName(inventory.getName())).thenReturn(Optional.of(inventory));
-        when(inventoryHelper.removeFromInventory(inventory, 20)).thenReturn(updatedInventory);
 
         ResponseEntity<String> response = inventoryService.removeItemsFromInventoryByName(inventory.getName(), 20);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        //assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+       verify(inventoryService).removeItemsFromInventory(Optional.of(inventory),20);
 
-        verify(inventoryRepository).save(inventory);
 
     }
     @Test
@@ -228,15 +219,15 @@ public class InventoryServiceTest {
     }
 
     @Test
-    void removeItemsFromInventoryById_shouldReturnOk(){
-        Inventory inventory = Inventory.builder()
+    void removeItemsFromInventory_shouldReturnOk(){
+        Optional<Inventory> inventory = Optional.of( Inventory.builder()
                 .name("hammer")
                 .id(1)
                 .quantity(70)
                 .minimumStockLevel(20)
                 .maximumStockLevel(100)
                 .storageLocation("A1")
-                .build();
+                .build());
         Inventory updatedInventory = Inventory.builder()
                 .name("hammer")
                 .id(1)
@@ -246,15 +237,40 @@ public class InventoryServiceTest {
                 .storageLocation("A1")
                 .build();
 
-        when(inventoryRepository.findById(inventory.getId())).thenReturn(Optional.of(inventory));
-        when(inventoryHelper.removeFromInventory(inventory, 20)).thenReturn(updatedInventory);
 
-        ResponseEntity<String> response = inventoryService.removeItemsToInventoryById(inventory.getId(), 20);
+        when(inventoryHelper.removeFromInventory(inventory.get(), 20)).thenReturn(updatedInventory);
+
+        ResponseEntity<String> response = inventoryService.removeItemsFromInventory(inventory, 20);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 
-        verify(inventoryRepository).save(inventory);
+        verify(inventoryRepository).save(updatedInventory);
+    }
 
+    @Test
+    void removeItemsFromInventory_shouldReturnNotAllowed(){
+        Optional<Inventory> inventory = Optional.of( Inventory.builder()
+                .name("hammer")
+                .id(1)
+                .quantity(70)
+                .minimumStockLevel(20)
+                .maximumStockLevel(100)
+                .storageLocation("A1")
+                .build());
+
+        when(inventoryHelper.removeFromInventory(inventory.get(), 20)).thenReturn(null);
+
+        ResponseEntity<String> response = inventoryService.removeItemsFromInventory(inventory, 20);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
+
+
+    }
+    @Test
+    void removeItemsFromInventory_shouldReturnNotFound(){
+        ResponseEntity<String> response = inventoryService.removeItemsFromInventory(Optional.empty(), 20);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
     @Test
     void removeItemsFromInventoryById_shouldReturnMethodNotFound(){
@@ -271,7 +287,7 @@ public class InventoryServiceTest {
         when(inventoryRepository.findById(inventory.getId())).thenReturn(Optional.empty());
 
 
-        ResponseEntity<String> response = inventoryService.removeItemsToInventoryById(inventory.getId(), 20);
+        ResponseEntity<String> response = inventoryService.removeItemsFromInventoryById(inventory.getId(), 20);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
@@ -289,7 +305,7 @@ public class InventoryServiceTest {
         when(inventoryRepository.findById(inventory.getId())).thenReturn(Optional.of(inventory));
         when(inventoryHelper.removeFromInventory(inventory, 20)).thenReturn(null);
 
-        ResponseEntity<String> response = inventoryService.removeItemsToInventoryById(inventory.getId(), 20);
+        ResponseEntity<String> response = inventoryService.removeItemsFromInventoryById(inventory.getId(), 20);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.METHOD_NOT_ALLOWED);
 

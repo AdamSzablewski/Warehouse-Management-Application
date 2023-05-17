@@ -13,9 +13,18 @@ public class SalesOrderControllerPUT {
 
     SalesOrderService salesOrderService;
 
-    @PutMapping("sales/send/id{id}")
-    public ResponseEntity<String> changeStatusOfSalesOrder(@PathVariable int id){
-        return salesOrderService.changeStatusOfSalesOrderToSent(id);
+    @PutMapping("sales/receive/id{id}")
+    public ResponseEntity<String> changeStatusOfSalesOrderToReceived(@PathVariable int id){
+        return salesOrderService.changeStatusOfSalesOrderToRecieved(id);
+    }
 
+    @PutMapping("sales/send/id{id}")
+    public ResponseEntity<String> changeStatusOfSalesOrderToSent(@PathVariable int id){
+        return salesOrderService.changeStatusOfSalesOrderToSent(id);
+    }
+
+    @PutMapping("sales/close/id{id}")
+    public ResponseEntity<String> changeStatusOfSalesOrderToClosed(@PathVariable int id){
+        return salesOrderService.changeStatusOfSalesOrderToClosed(id);
     }
 }

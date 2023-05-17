@@ -25,7 +25,7 @@ public class SalesOrderConfirmation {
 
     @OneToOne
     private SalesOrder purchaseOrder;
-
+    private String buyerTrackingId;
     private LocalDate deliveryDate;
 
 }

@@ -41,7 +41,9 @@ public class PurchaseOrderService {
         }
 
         PurchaseOrder purchaseOrder = optionalPurchaseOrder.get();
-
+        if(purchaseOrder.isDelivered()){
+            return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Purchase order already marked as delivered");
+        }
 
         for (PurchaseOrderItem p : purchaseOrder.getProducts()){
             Optional<Inventory> optionalInventory = inventoryRepository.findByName(p.getName());

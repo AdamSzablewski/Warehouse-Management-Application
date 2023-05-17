@@ -2,6 +2,7 @@ package com.adamszablewski.Warehouse.Management.Application.salesorders.controll
 
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.service.SalesOrderService;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,7 +16,7 @@ public class SalesOrderControllerPOST {
     SalesOrderService salesOrderService;
 
     @PostMapping("/sales")
-    public ResponseEntity<String> newSalesOrder(@RequestBody SalesOrder salesOrder){
+    public ResponseEntity<String> newSalesOrder(@Valid @RequestBody SalesOrder salesOrder){
         return salesOrderService.createSalesOrder(salesOrder);
         }
     }
