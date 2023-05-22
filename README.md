@@ -31,6 +31,9 @@ The API includes functionality to provide purchase order confirmations to buyers
 - Data availability: The API provides the necessary data, including the confirmed purchase order details and the calculated delivery date, for further processing by an email service or other communication mechanism.
 - Integration flexibility: You can integrate the API with an external email service or utilize the provided data to implement your own email sending mechanism as per your specific requirements.
 
+### JWT Authentication and Authorization
+
+The Warehouse Management API incorporates JWT (JSON Web Token) authentication and authorization mechanisms to secure the endpoints and protect sensitive data. With JWT, you can ensure that only authorized users can access the API and perform specific actions. Features of JWT authentication and authorization in the API include user authentication, token-based authorization, secure token transmission, token expiration and renewal, and fine-grained access control.
 
 ## License
 
