@@ -43,6 +43,8 @@ public class UserInfo {
     @Column(name = "email")
     private String username;
 
+    private String phoneNumber;
+
     @NotEmpty
     @Column(name = "password")
     @JsonIgnore

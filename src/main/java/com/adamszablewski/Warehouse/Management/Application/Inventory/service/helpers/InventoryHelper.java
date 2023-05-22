@@ -35,6 +35,7 @@ public class InventoryHelper {
     }
 
     public void createAutomaticReordersIfNeeded(SalesOrder salesOrder){
+
         int amount = 0;
 
         for (SalesOrderItem soi : salesOrder.getItems()) {
@@ -44,12 +45,16 @@ public class InventoryHelper {
 
             } else {
                 Inventory inventory = optionalInventory.get();
-                int theoreticalQuantity = inventory.getQuantity() + inventory.getAwaitedQuantity();
+                int totalAmount = 0;
 
                 if (inventory.getQuantity() - amount < inventory.getMinimumStockLevel()){
-                    int quantityAfter = theoreticalQuantity - amount;
-                    int difference = inventory.getMinimumStockLevel() - quantityAfter;
-                    automaticReorder(inventory, difference);
+                    if(inventory.getAwaitedQuantity() > 0 ){
+                        totalAmount = soi.getTotalAmount();
+                    }else {
+                        int quantityAfter = inventory.getQuantity() - amount;
+                        totalAmount = inventory.getMinimumStockLevel() - quantityAfter;
+                    }
+                    automaticReorder(inventory, totalAmount);
                 }
             }
         }

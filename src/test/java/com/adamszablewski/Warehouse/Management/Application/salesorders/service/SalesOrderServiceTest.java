@@ -50,7 +50,7 @@ public class SalesOrderServiceTest {
     }
 
     @Test
-    void changeStatusOfSalesOrder_should_return_ok(){
+    void changeStatusOfSalesOrderToRecieved_should_return_ok(){
 
         SalesOrderItem soi1 = SalesOrderItem.builder()
                 .name("hammer")
@@ -60,16 +60,6 @@ public class SalesOrderServiceTest {
         SalesOrderItem soi2 = SalesOrderItem.builder()
                 .name("saw")
                 .totalAmount(3)
-                .build();
-
-        Inventory i1 = Inventory.builder()
-                .name("hammer")
-                .quantity(100)
-                .build();
-
-        Inventory i2 = Inventory.builder()
-                .name("hammer")
-                .quantity(100)
                 .build();
 
         List<SalesOrderItem> soiList = List.of(soi1, soi2);
@@ -82,15 +72,41 @@ public class SalesOrderServiceTest {
 
         when(salesOrderRepository.findById(salesOrder.getId())).thenReturn(Optional.of(salesOrder));
 
-        when(inventoryService.retrieveInventoryByName(soi1.getName())).thenReturn(Optional.of(i1));
-        when(inventoryService.retrieveInventoryByName(soi2.getName())).thenReturn(Optional.of(i2));
+        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToRecieved(1);
 
+        assertThat(salesOrder.isOrderRecieved()).isTrue();
+        verify(salesOrderRepository).save(any(SalesOrder.class));
+        verify(inventoryHelper).createAutomaticReordersIfNeeded(any(SalesOrder.class));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    void changeStatusOfSalesOrderToRecieved_should_return_NOT_FOUND(){
 
+        SalesOrderItem soi1 = SalesOrderItem.builder()
+                .name("hammer")
+                .totalAmount(4)
+                .build();
+
+        SalesOrderItem soi2 = SalesOrderItem.builder()
+                .name("saw")
+                .totalAmount(3)
+                .build();
+
+        List<SalesOrderItem> soiList = List.of(soi1, soi2);
+
+        SalesOrder salesOrder = SalesOrder.builder()
+                .id(1)
+                .items(soiList)
+                .inDelivery(false)
+                .build();
+
+        when(salesOrderRepository.findById(salesOrder.getId())).thenReturn(Optional.empty());
 
         ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToRecieved(1);
 
-        assertThat(salesOrder.isInDelivery()).isTrue();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        verify(inventoryHelper, times(2)).removeFromInventory(any(Inventory.class), anyInt());
+        assertThat(salesOrder.isOrderRecieved()).isFalse();
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
+
+
 }

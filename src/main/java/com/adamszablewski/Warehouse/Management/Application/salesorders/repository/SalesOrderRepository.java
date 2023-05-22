@@ -10,4 +10,5 @@ import java.util.List;
 public interface SalesOrderRepository extends JpaRepository<SalesOrder, Integer> {
 
     List<SalesOrder> findAllByCompany(String company);
+    List<SalesOrder> findAllByBuyerTrackingId(String company);
 }

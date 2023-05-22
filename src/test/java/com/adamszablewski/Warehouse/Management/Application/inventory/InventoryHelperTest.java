@@ -1,6 +1,7 @@
 package com.adamszablewski.Warehouse.Management.Application.inventory;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
+import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
 import com.adamszablewski.Warehouse.Management.Application.purchaseorders.PurchaseOrder;
@@ -33,11 +34,14 @@ public class InventoryHelperTest {
     PurchaseOrderHelper purchaseOrderHelper;
 
     @Mock
+    InventoryRepository inventoryRepository;
+
+    @Mock
     PurchaseOrderRepository purchaseOrderRepository;
 
     @BeforeEach
     void setUp(){
-        inventoryHelper = new InventoryHelper(purchaseOrderRepository, purchaseOrderHelper);
+        inventoryHelper = new InventoryHelper(purchaseOrderRepository, purchaseOrderHelper, inventoryRepository);
 
     }
 

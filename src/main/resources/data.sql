@@ -24,3 +24,18 @@ INSERT INTO VENDOR (id, name, address, email, phone) VALUES
   ('Pliers', 4, 1, 2, 100 ,0, 50, 400, 40, 1000, 'D4'),
   ('Circular Saw', 5, 1, 1, 100,0, 20, 50, 5, 100, 'E5');
 
+
+  insert into USER_INFO (FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, PHONE_NUMBER)
+  values ( 'Adam', 'Sz', 'adam@test.com','$2a$10$J7eFD6Z4mX1NGPeku1467uWlFzx0JjdBB.oBplzVF1pTck5N75jA2', '09893434'),
+    ('John', 'Ad', 'john@test.com','$2a$10$Vy1P7f5epa3wOZHofeADYe2/fkpd.8HiIyyTy6nL5xTqnsgkM29ly', '05678'),
+  ( 'Test', 'T', 'test@test.com','$2a$10$RLhewL4cFkfyzrlY6M3n.OHd8HdzURC8VjdnAh7hlKmZVV5gQDyo.', '01');
+
+ insert into ROLE(NAME)
+ values('EMPLOYEE');
+ insert into ROLE(NAME)
+ values('MANAGER');
+
+ INSERT INTO user_roles (id, rid) VALUES (1, 3);
+ INSERT INTO user_roles (id, rid) VALUES (2, 2);
+
+

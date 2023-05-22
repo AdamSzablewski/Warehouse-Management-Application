@@ -22,6 +22,12 @@ public class SalesOrderConfirmation {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     private String description;
+    private String deliveryAddress;
+    private String contactEmail;
+    private String contactPhone;
+    private String contactPerson;
+    private String company;
+
 
     @OneToOne
     private SalesOrder purchaseOrder;

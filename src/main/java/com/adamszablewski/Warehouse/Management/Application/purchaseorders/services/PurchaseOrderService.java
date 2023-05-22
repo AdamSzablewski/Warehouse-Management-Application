@@ -45,6 +45,17 @@ public class PurchaseOrderService {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Purchase order already marked as delivered");
         }
 
+        addToInventory(purchaseOrder);
+        purchaseOrder.setDelivered(true);
+        purchaseOrder.setDateOfDelivery(LocalDate.now());
+
+        purchaseOrderRepository.save(purchaseOrder);
+
+        return ResponseEntity.ok("Products successfully added to inventory");
+
+    }
+
+    private void addToInventory(PurchaseOrder purchaseOrder){
         for (PurchaseOrderItem p : purchaseOrder.getProducts()){
             Optional<Inventory> optionalInventory = inventoryRepository.findByName(p.getName());
             if(optionalInventory.isEmpty()){
@@ -55,17 +66,7 @@ public class PurchaseOrderService {
                 inventory.setAwaitedQuantity(inventory.getAwaitedQuantity() - p.getAmount());
                 inventoryRepository.save(inventory);
             }
-
         }
-
-        purchaseOrder.setDelivered(true);
-        purchaseOrder.setDateOfDelivery(LocalDate.now());
-
-        purchaseOrderRepository.save(purchaseOrder);
-
-
-        return ResponseEntity.ok("Products successfully added to inventory");
-
     }
 
     public List<PurchaseOrder> getAllPurchaseOrders() {

@@ -30,6 +30,7 @@ public class PurchaseOrderHelper {
             Inventory inventory = optionalInventory.get();
             inventory.setAwaitedQuantity(inventory.getAwaitedQuantity()+poi.getAmount());
             inventoryRepository.save(inventory);
+            System.out.println(purchaseOrder.toString());
         }
         //sending it out
         return ResponseEntity.ok("Purchase order sent succesfully to the vendor");

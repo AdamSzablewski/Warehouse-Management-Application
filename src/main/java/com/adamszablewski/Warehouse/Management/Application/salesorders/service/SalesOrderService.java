@@ -66,7 +66,7 @@ public class SalesOrderService {
         return ResponseEntity.ok("Status changed to received");
     }
 
-    public ResponseEntity<String> changeStatusOfSalesOrderToSent(int id) {
+    public ResponseEntity<String> changeStatusOfSalesOrderToInDelivery(int id) {
         Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
         if (optionalSalesOrder.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
@@ -83,7 +83,12 @@ public class SalesOrderService {
         }
         salesOrder.setInDelivery(true);
         salesOrderRepository.save(salesOrder);
+        removeFromInventory(salesOrder);
+        sendInDeliveryMail(salesOrder);
+        return ResponseEntity.ok("Status changed to sent");
+    }
 
+    private void removeFromInventory(SalesOrder salesOrder){
         for (SalesOrderItem soi : salesOrder.getItems()) {
             Optional<Inventory> optionalInventory = inventoryService.retrieveInventoryByName(soi.getName());
             if (optionalInventory.isEmpty()) {
@@ -96,7 +101,6 @@ public class SalesOrderService {
                 }
             }
         }
-        return ResponseEntity.ok("Status changed to sent");
     }
 
     private boolean canCompleteOrder(SalesOrder salesOrder) {
@@ -115,13 +119,30 @@ public class SalesOrderService {
         return false;
     }
 
+    private void sendInDeliveryMail (SalesOrder salesOrder){
+        SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
+                .description("some text")
+                .contactEmail(salesOrder.getContactEmail())
+                .contactPerson(salesOrder.getContactPerson())
+                .deliveryAddress(salesOrder.getDeliveryAdress())
+                .company(salesOrder.getCompany())
+                .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
+                .purchaseOrder(salesOrder)
+                .deliveryDate(calculateDeliveryDate(3))
+                .build();
+    }
+
 
         private SalesOrderConfirmation sendSalesOrderConfirmation (SalesOrder salesOrder){
             SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
                     .description("some text")
+                    .contactEmail(salesOrder.getContactEmail())
+                    .contactPerson(salesOrder.getContactPerson())
+                    .deliveryAddress(salesOrder.getDeliveryAdress())
+                    .company(salesOrder.getCompany())
                     .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
                     .purchaseOrder(salesOrder)
-                    .deliveryDate(calculateDeliveryDate())
+                    .deliveryDate(calculateDeliveryDate(14))
                     .build();
 
             salesOrderConfirmationRepository.save(salesOrderConfirmation);
@@ -129,11 +150,10 @@ public class SalesOrderService {
             return salesOrderConfirmation;
         }
 
-        private LocalDate calculateDeliveryDate () {
+        private LocalDate calculateDeliveryDate (int workdays) {
             LocalDate currentDate = LocalDate.now();
-            int workdaysToAdd = 14;
 
-            for (int i = 0; i < workdaysToAdd; i++) {
+            for (int i = 0; i < workdays; i++) {
                 currentDate = currentDate.plusDays(1);
                 if (currentDate.getDayOfWeek() == DayOfWeek.SATURDAY || currentDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
                     currentDate = currentDate.plusDays(1);
@@ -189,5 +209,8 @@ public class SalesOrderService {
         }
 
 
+    public List<SalesOrder> getAllOrdersForBuyerTrackingId(String id) {
+        return salesOrderRepository.findAllByBuyerTrackingId(id);
     }
+}
 

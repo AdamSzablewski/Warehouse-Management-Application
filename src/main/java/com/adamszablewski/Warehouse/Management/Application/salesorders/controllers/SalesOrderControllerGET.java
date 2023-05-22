@@ -31,4 +31,9 @@ public class SalesOrderControllerGET {
         return salesOrderService.getAllOrdersForCompany(company);
     }
 
+    @GetMapping("/sales/custom-id/{id}")
+    public List<SalesOrder> getAllOrdersByBuyerTrackingId(@PathVariable String id){
+        return salesOrderService.getAllOrdersForBuyerTrackingId(id);
+    }
+
 }
