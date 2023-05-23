@@ -24,7 +24,12 @@ The API automates the restocking process by automatically generating purchase or
 
 ### Purchase Order Confirmation and Delivery Date Calculation
 
-The API includes functionality to provide purchase order confirmations to buyers along with calculated delivery dates. However, please note that the API does not directly send emails. Instead, it provides the necessary data and functionality up to the point of a possible API call service that handles email communication. Key aspects of this functionality include:
+The API includes functionality to provide purchase order confirmations to buyers along with calculated delivery dates. The procurement process allows for two options for setting the estimated delivery date:
+
+1. Preset by the user: Users can set a default estimated delivery date that will be included in the order confirmation.
+2. Set individually: If needed, the delivery date can be set individually for each purchase order confirmation.
+
+However, please note that the API does not directly send emails. Instead, it provides the necessary data and functionality up to the point of a possible API call service that handles email communication. Key aspects of this functionality include:
 
 - Confirmation notifications: The API generates purchase order confirmations containing all relevant information.
 - Delivery date calculation: The API calculates the estimated delivery date based on factors such as product availability, vendor delivery schedules, and shipping options.

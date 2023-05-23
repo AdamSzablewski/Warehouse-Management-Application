@@ -34,14 +34,10 @@ import static org.mockito.Mockito.*;
 public class PurchaseOrderServiceTest {
 
     PurchaseOrderService purchaseOrderService;
-
     @Mock
     InventoryRepository inventoryRepository;
-
     @Mock
     InventoryHelper inventoryHelper;
-
-
     @Mock
     PurchaseOrderRepository purchaseOrderRepository;
 
@@ -87,27 +83,19 @@ public class PurchaseOrderServiceTest {
                 .name("hammer")
                 .quantity(100)
                 .build();
+
         Inventory i2 = Inventory.builder()
                 .name("hammer")
                 .quantity(100)
                 .build();
 
-
         when(purchaseOrderRepository.findById(purchaseOrder.getPOid())).thenReturn(Optional.of(purchaseOrder));
-
-
         when(inventoryRepository.findByName(p1.getName())).thenReturn(Optional.of(i1));
         when(inventoryRepository.findByName(p2.getName())).thenReturn(Optional.of(i2));
 
-
-
         ResponseEntity<String> response = purchaseOrderService.markAsDelivered(1);
 
-
-
-
         verify(inventoryHelper, times(2)).addToInventory(any(Inventory.class), anyInt());
-
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertTrue(purchaseOrder.isDelivered());
         assertNotNull(purchaseOrder.getDateOfDelivery());

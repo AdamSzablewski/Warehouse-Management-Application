@@ -77,46 +77,41 @@ public class SalesOrderService {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
                     .body("Status of sales order must first be changed to received");
         }
-        if (!canCompleteOrder(salesOrder)) {
+        if (!inventoryHelper.canCompleteOrder(salesOrder)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Not sufficient amount in inventory to complete order");
         }
         salesOrder.setInDelivery(true);
         salesOrderRepository.save(salesOrder);
-        removeFromInventory(salesOrder);
+        inventoryHelper.removeFromInventory(salesOrder);
         sendInDeliveryMail(salesOrder);
         return ResponseEntity.ok("Status changed to sent");
     }
 
-    private void removeFromInventory(SalesOrder salesOrder){
-        for (SalesOrderItem soi : salesOrder.getItems()) {
-            Optional<Inventory> optionalInventory = inventoryService.retrieveInventoryByName(soi.getName());
-            if (optionalInventory.isEmpty()) {
+    public ResponseEntity<String> changeStatusOfSalesOrderToInDelivery(int id, LocalDate dateOfDelivery) {
 
-            } else {
-                Inventory inventory = optionalInventory.get();
-                if (inventory.getQuantity() - soi.getTotalAmount() > 0) {
-                    inventoryHelper.removeFromInventoryNoReorder(inventory, soi.getTotalAmount());
-                    inventoryRepository.save(inventory);
-                }
-            }
+        if (dateOfDelivery.isBefore(LocalDate.now())){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Delivery date must me in the future");
         }
-    }
-
-    private boolean canCompleteOrder(SalesOrder salesOrder) {
-        for (SalesOrderItem soi : salesOrder.getItems()) {
-            Optional<Inventory> optionalInventory = inventoryService.retrieveInventoryByName(soi.getName());
-            if (optionalInventory.isEmpty()) {
-
-            } else {
-                Inventory inventory = optionalInventory.get();
-                if (inventoryHelper.checkIfReorderNeeded(inventory, soi.getTotalAmount())) {
-                    return false;
-                }
-                return true;
-            }
+        Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
+        if (optionalSalesOrder.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-        return false;
+        SalesOrder salesOrder = optionalSalesOrder.get();
+
+        if (!salesOrder.isOrderRecieved()) {
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+                    .body("Status of sales order must first be changed to received");
+        }
+        if (!inventoryHelper.canCompleteOrder(salesOrder)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body("Not sufficient amount in inventory to complete order");
+        }
+        salesOrder.setInDelivery(true);
+        salesOrderRepository.save(salesOrder);
+        inventoryHelper.removeFromInventory(salesOrder);
+        sendInDeliveryMail(salesOrder, dateOfDelivery);
+        return ResponseEntity.ok("Status changed to sent");
     }
 
     private void sendInDeliveryMail (SalesOrder salesOrder){
@@ -130,6 +125,22 @@ public class SalesOrderService {
                 .purchaseOrder(salesOrder)
                 .deliveryDate(calculateDeliveryDate(3))
                 .build();
+
+        //further api call here
+    }
+    private void sendInDeliveryMail (SalesOrder salesOrder, LocalDate date){
+        SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
+                .description("some text")
+                .contactEmail(salesOrder.getContactEmail())
+                .contactPerson(salesOrder.getContactPerson())
+                .deliveryAddress(salesOrder.getDeliveryAdress())
+                .company(salesOrder.getCompany())
+                .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
+                .purchaseOrder(salesOrder)
+                .deliveryDate(date)
+                .build();
+
+        //further api call here
     }
 
 
@@ -146,7 +157,7 @@ public class SalesOrderService {
                     .build();
 
             salesOrderConfirmationRepository.save(salesOrderConfirmation);
-            //api
+            //further api call here
             return salesOrderConfirmation;
         }
 

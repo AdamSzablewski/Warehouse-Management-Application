@@ -34,6 +34,22 @@ public class InventoryHelper {
        return updatedInventoryLevel;
     }
 
+    public boolean canCompleteOrder(SalesOrder salesOrder) {
+        for (SalesOrderItem soi : salesOrder.getItems()) {
+            Optional<Inventory> optionalInventory = inventoryRepository.findByName(soi.getName());
+            if (optionalInventory.isEmpty()) {
+
+            } else {
+                Inventory inventory = optionalInventory.get();
+                if (checkIfReorderNeeded(inventory, soi.getTotalAmount())) {
+                    return false;
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
     public void createAutomaticReordersIfNeeded(SalesOrder salesOrder){
 
         int amount = 0;
@@ -61,6 +77,20 @@ public class InventoryHelper {
 
     }
 
+    public void removeFromInventory(SalesOrder salesOrder){
+        for (SalesOrderItem soi : salesOrder.getItems()) {
+            Optional<Inventory> optionalInventory = inventoryRepository.findByName(soi.getName());
+            if (optionalInventory.isEmpty()) {
+
+            } else {
+                Inventory inventory = optionalInventory.get();
+                if (inventory.getQuantity() - soi.getTotalAmount() > 0) {
+                    removeFromInventoryNoReorder(inventory, soi.getTotalAmount());
+                    inventoryRepository.save(inventory);
+                }
+            }
+        }
+    }
     public Inventory removeFromInventory(Inventory inventory, int amount){
         int theoreticalQuantity = inventory.getQuantity() + inventory.getAwaitedQuantity();
 

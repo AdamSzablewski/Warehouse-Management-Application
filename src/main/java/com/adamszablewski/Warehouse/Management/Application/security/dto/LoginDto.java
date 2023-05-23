@@ -1,4 +1,4 @@
-package com.adamszablewski.Warehouse.Management.Application.dto;
+package com.adamszablewski.Warehouse.Management.Application.security.dto;
 
 import lombok.Data;
 

@@ -21,46 +21,40 @@ import java.util.Optional;
 @AllArgsConstructor
 public class PurchaseOrderService {
 
-    PurchaseOrderRepository purchaseOrderRepository;
-
-    InventoryHelper inventoryHelper;
-
-    InventoryRepository inventoryRepository;
-
-    PurchaseOrderHelper purchaseOrderHelper;
+    private final PurchaseOrderRepository purchaseOrderRepository;
+    private final InventoryHelper inventoryHelper;
+    private final InventoryRepository inventoryRepository;
+    private final PurchaseOrderHelper purchaseOrderHelper;
 
     public ResponseEntity<String> purchase(PurchaseOrder purchaseOrder) {
         return purchaseOrderHelper.purchase(purchaseOrder);
     }
 
-
     public ResponseEntity<String> markAsDelivered(int id) {
         Optional<PurchaseOrder> optionalPurchaseOrder = purchaseOrderRepository.findById(id);
-        if (optionalPurchaseOrder.isEmpty()){
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such purchase order exist");
+        if (optionalPurchaseOrder.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("No such purchase order exists");
         }
 
         PurchaseOrder purchaseOrder = optionalPurchaseOrder.get();
-        if(purchaseOrder.isDelivered()){
+        if (purchaseOrder.isDelivered()) {
             return ResponseEntity.status(HttpStatus.ALREADY_REPORTED).body("Purchase order already marked as delivered");
         }
 
         addToInventory(purchaseOrder);
         purchaseOrder.setDelivered(true);
         purchaseOrder.setDateOfDelivery(LocalDate.now());
-
         purchaseOrderRepository.save(purchaseOrder);
 
         return ResponseEntity.ok("Products successfully added to inventory");
-
     }
 
-    private void addToInventory(PurchaseOrder purchaseOrder){
-        for (PurchaseOrderItem p : purchaseOrder.getProducts()){
+    private void addToInventory(PurchaseOrder purchaseOrder) {
+        for (PurchaseOrderItem p : purchaseOrder.getProducts()) {
             Optional<Inventory> optionalInventory = inventoryRepository.findByName(p.getName());
-            if(optionalInventory.isEmpty()){
-                //add error
-            }else {
+            if (optionalInventory.isEmpty()) {
+                // add exception
+            } else {
                 Inventory inventory = optionalInventory.get();
                 inventoryHelper.addToInventory(inventory, p.getAmount());
                 inventory.setAwaitedQuantity(inventory.getAwaitedQuantity() - p.getAmount());
