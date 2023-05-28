@@ -1,9 +1,10 @@
 package com.adamszablewski.Warehouse.Management.Application.salesorders.service;
 
-import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.InventoryService;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
+import com.adamszablewski.Warehouse.Management.Application.messages.Message;
+import com.adamszablewski.Warehouse.Management.Application.messages.service.MessageService;
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
 import com.adamszablewski.Warehouse.Management.Application.product.repository.ProductRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
@@ -31,6 +32,7 @@ public class SalesOrderService {
     ProductRepository productRepository;
     InventoryService inventoryService;
     SalesOrderConfirmationRepository salesOrderConfirmationRepository;
+    MessageService messageService;
 
 
     public List<SalesOrder> getAllSalesOrders() {
@@ -53,12 +55,16 @@ public class SalesOrderService {
         return ResponseEntity.ok("Sales order sent");
     }
 
-    public ResponseEntity<String> changeStatusOfSalesOrderToRecieved(int id) {
+    public ResponseEntity<String> changeStatusOfSalesOrderToReceived(int id) {
         Optional<SalesOrder> optionalSalesOrder = salesOrderRepository.findById(id);
         if (optionalSalesOrder.isEmpty()) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
+
         SalesOrder salesOrder = optionalSalesOrder.get();
+        if (salesOrder.isOrderRecieved() || salesOrder.isInDelivery() || salesOrder.isTransactionClosed()){
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("This sales order already has status of received");
+        }
         salesOrder.setOrderRecieved(true);
         salesOrderRepository.save(salesOrder);
         sendSalesOrderConfirmation(salesOrder);
@@ -73,10 +79,11 @@ public class SalesOrderService {
         }
         SalesOrder salesOrder = optionalSalesOrder.get();
 
-        if (!salesOrder.isOrderRecieved()) {
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                    .body("Status of sales order must first be changed to received");
+        if (!salesOrder.isOrderRecieved() || salesOrder.isInDelivery() || salesOrder.isTransactionClosed()){
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Status of sales order must first be changed to received," +
+                    "already is set as in delivery, or transaction has been already closed");
         }
+
         if (!inventoryHelper.canCompleteOrder(salesOrder)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Not sufficient amount in inventory to complete order");
@@ -99,10 +106,11 @@ public class SalesOrderService {
         }
         SalesOrder salesOrder = optionalSalesOrder.get();
 
-        if (!salesOrder.isOrderRecieved()) {
-            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
-                    .body("Status of sales order must first be changed to received");
+        if (!salesOrder.isOrderRecieved() || salesOrder.isInDelivery() || salesOrder.isTransactionClosed()){
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Status of sales order must first be changed to received," +
+                    "already is set as in delivery, or transaction has been already closed");
         }
+
         if (!inventoryHelper.canCompleteOrder(salesOrder)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Not sufficient amount in inventory to complete order");
@@ -126,6 +134,7 @@ public class SalesOrderService {
                 .deliveryDate(calculateDeliveryDate(3))
                 .build();
 
+        sendInternalMessageToVendor(salesOrder);
         //further api call here
     }
     private void sendInDeliveryMail (SalesOrder salesOrder, LocalDate date){
@@ -140,9 +149,36 @@ public class SalesOrderService {
                 .deliveryDate(date)
                 .build();
 
+        sendInternalMessageToVendor(salesOrder);
         //further api call here
     }
 
+    private void sendInternalMessageToVendor(SalesOrder salesOrder){
+        String orderId = salesOrder.getBuyerTrackingId() == null ? salesOrder.getBuyerTrackingId() : String.valueOf(salesOrder.getId());
+        String messageContent = "";
+        if(!salesOrder.isInDelivery() && salesOrder.isOrderRecieved()){
+            messageContent = String.format("Hi, we have received your order %s, as soon as the order is ready to ship we will notify you of " +
+                            "the exact delivery date. For more information please check your inbox for our email."
+                    , orderId);
+        } else if (salesOrder.isInDelivery() && salesOrder.isOrderRecieved() && !salesOrder.isTransactionClosed()) {
+            messageContent = String.format("Hi, your order %s, is now in delivery." +
+                            "For more information please check your inbox for our email."
+                    , orderId);
+        }
+        else if (salesOrder.isTransactionClosed()) {
+            messageContent = String.format("Hi, your order %s, is now delivered." +
+                            "For more information please check your inbox for our email."
+                    , orderId);
+        }
+
+        Message message = Message.builder()
+                .sender("automated")
+                .receiver(salesOrder.getCompany())
+                .message(messageContent)
+                .build();
+        messageService.createMessageBySupport(message, salesOrder.getCompany());
+
+    }
 
         private SalesOrderConfirmation sendSalesOrderConfirmation (SalesOrder salesOrder){
             SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
@@ -157,6 +193,8 @@ public class SalesOrderService {
                     .build();
 
             salesOrderConfirmationRepository.save(salesOrderConfirmation);
+
+            sendInternalMessageToVendor(salesOrder);
             //further api call here
             return salesOrderConfirmation;
         }
@@ -213,8 +251,16 @@ public class SalesOrderService {
             }
 
             SalesOrder salesOrder = optionalSalesOrder.get();
+
+            if (!salesOrder.isOrderRecieved() || !salesOrder.isInDelivery() || salesOrder.isTransactionClosed()){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Status of sales order must first be changed to received," +
+                        " in delivery, or transaction has been already closed");
+            }
+
             salesOrder.setTransactionClosed(true);
             salesOrderRepository.save(salesOrder);
+
+            sendInternalMessageToVendor(salesOrder);
 
             return ResponseEntity.ok("Status changed to closed");
         }

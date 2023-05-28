@@ -1,6 +1,7 @@
 package com.adamszablewski.Warehouse.Management.Application.vendor;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
+import com.adamszablewski.Warehouse.Management.Application.messages.Conversation;
 import com.adamszablewski.Warehouse.Management.Application.product.Product;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

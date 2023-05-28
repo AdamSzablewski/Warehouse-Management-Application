@@ -27,7 +27,7 @@ INSERT INTO VENDOR (id, name, address, email, phone) VALUES
 
   insert into USER_INFO (FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, PHONE_NUMBER)
   values ( 'Adam', 'Sz', 'adam@test.com','$2a$10$J7eFD6Z4mX1NGPeku1467uWlFzx0JjdBB.oBplzVF1pTck5N75jA2', '09893434'),
-    ('John', 'Ad', 'john@test.com','$2a$10$Vy1P7f5epa3wOZHofeADYe2/fkpd.8HiIyyTy6nL5xTqnsgkM29ly', '05678'),
+    ('support', 'support', 'support@test.com','$2a$10$Vy1P7f5epa3wOZHofeADYe2/fkpd.8HiIyyTy6nL5xTqnsgkM29ly', '05678'),
   ( 'Test', 'T', 'test@test.com','$2a$10$RLhewL4cFkfyzrlY6M3n.OHd8HdzURC8VjdnAh7hlKmZVV5gQDyo.', '01');
 
  insert into ROLE(NAME)

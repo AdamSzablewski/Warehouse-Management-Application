@@ -1,9 +1,9 @@
 package com.adamszablewski.Warehouse.Management.Application.salesorders.service;
 
-import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.InventoryService;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
+import com.adamszablewski.Warehouse.Management.Application.messages.service.MessageService;
 import com.adamszablewski.Warehouse.Management.Application.product.repository.ProductRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
@@ -18,7 +18,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -41,11 +40,13 @@ public class SalesOrderServiceTest {
     InventoryService inventoryService;
     @Mock
     SalesOrderConfirmationRepository salesOrderConfirmationRepository;
+    @Mock
+    MessageService messageService;
 
     @BeforeEach
     void setUp(){
         salesOrderService = new SalesOrderService(salesOrderRepository, inventoryHelper,
-                inventoryRepository, productRepository, inventoryService, salesOrderConfirmationRepository);
+                inventoryRepository, productRepository, inventoryService, salesOrderConfirmationRepository, messageService);
     }
 
     @Test
@@ -70,7 +71,7 @@ public class SalesOrderServiceTest {
                 .build();
         when(salesOrderRepository.findById(salesOrder.getId())).thenReturn(Optional.of(salesOrder));
 
-        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToRecieved(1);
+        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToReceived(1);
 
         assertThat(salesOrder.isOrderRecieved()).isTrue();
         verify(salesOrderRepository).save(any(SalesOrder.class));
@@ -101,7 +102,7 @@ public class SalesOrderServiceTest {
         when(salesOrderRepository.findById(salesOrder.getId())).thenReturn(Optional.empty());
 
 
-        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToRecieved(1);
+        ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToReceived(1);
 
 
         assertThat(salesOrder.isOrderRecieved()).isFalse();
@@ -131,7 +132,7 @@ public class SalesOrderServiceTest {
 
         when(salesOrderRepository.findById(salesOrder.getId())).thenReturn(Optional.of(salesOrder));
         when(inventoryHelper.canCompleteOrder(salesOrder)).thenReturn(true);
-        
+
         ResponseEntity<String> response = salesOrderService.changeStatusOfSalesOrderToInDelivery(salesOrder.getId());
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);

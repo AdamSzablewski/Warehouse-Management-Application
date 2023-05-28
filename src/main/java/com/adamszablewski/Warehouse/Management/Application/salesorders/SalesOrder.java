@@ -23,7 +23,6 @@ public class SalesOrder {
     private int id;
     private boolean inDelivery;
     private boolean orderRecieved;
-    private boolean orderSent;
     private boolean transactionClosed;
     private String company;
     private String buyerTrackingId;

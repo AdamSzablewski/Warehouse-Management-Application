@@ -18,7 +18,7 @@ public class SalesOrderControllerPUT {
 
     @PutMapping("sales/receive/id{id}")
     public ResponseEntity<String> changeStatusOfSalesOrderToReceived(@PathVariable int id){
-        return salesOrderService.changeStatusOfSalesOrderToRecieved(id);
+        return salesOrderService.changeStatusOfSalesOrderToReceived(id);
     }
 
     @PutMapping("sales/send/id{id}")
