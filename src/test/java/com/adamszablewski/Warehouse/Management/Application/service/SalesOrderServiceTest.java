@@ -1,13 +1,16 @@
-package com.adamszablewski.Warehouse.Management.Application.salesorders.service;
+package com.adamszablewski.Warehouse.Management.Application.service;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.InventoryService;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
+import com.adamszablewski.Warehouse.Management.Application.messages.helpers.MessageSender;
 import com.adamszablewski.Warehouse.Management.Application.messages.service.MessageService;
 import com.adamszablewski.Warehouse.Management.Application.product.repository.ProductRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
+import com.adamszablewski.Warehouse.Management.Application.salesorders.helpers.SalesOrderHelper;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.repository.SalesOrderRepository;
+import com.adamszablewski.Warehouse.Management.Application.salesorders.service.SalesOrderService;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,22 +34,17 @@ public class SalesOrderServiceTest {
     SalesOrderRepository salesOrderRepository;
     SalesOrderService salesOrderService;
     @Mock
-    ProductRepository productRepository;
-    @Mock
     InventoryHelper inventoryHelper;
     @Mock
-    InventoryRepository inventoryRepository;
+    MessageSender messageSender;
+
     @Mock
-    InventoryService inventoryService;
-    @Mock
-    SalesOrderConfirmationRepository salesOrderConfirmationRepository;
-    @Mock
-    MessageService messageService;
+    SalesOrderHelper salesOrderHelper;
 
     @BeforeEach
     void setUp(){
-        salesOrderService = new SalesOrderService(salesOrderRepository, inventoryHelper,
-                inventoryRepository, productRepository, inventoryService, salesOrderConfirmationRepository, messageService);
+        salesOrderService = new SalesOrderService(salesOrderRepository, salesOrderHelper, inventoryHelper,
+                messageSender);
     }
 
     @Test

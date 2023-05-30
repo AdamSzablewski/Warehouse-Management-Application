@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class ConversationControllerPOST {
 
-    ConversationService conversationService;
+    private final ConversationService conversationService;
 
     @PostMapping("/conversations/create/customer/{customer}")
-    public ResponseEntity<String> createConversationByVendor(@PathVariable String customer){
+    public Conversation createConversationByVendor(@PathVariable String customer){
         return conversationService.createConversationByVendor(customer);
     }
 }

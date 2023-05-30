@@ -14,7 +14,7 @@ import java.util.Optional;
 @RestController
 public class ConversationControllerGET {
 
-    ConversationService conversationService;
+    private final ConversationService conversationService;
 
     @GetMapping("/conversations/vendor/{vendor}")
     public Optional<Conversation> getConversationByVendor(@PathVariable String vendor){

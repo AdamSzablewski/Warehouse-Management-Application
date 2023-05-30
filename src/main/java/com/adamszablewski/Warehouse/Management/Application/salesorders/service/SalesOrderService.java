@@ -3,14 +3,12 @@ package com.adamszablewski.Warehouse.Management.Application.salesorders.service;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.InventoryService;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.service.helpers.InventoryHelper;
-import com.adamszablewski.Warehouse.Management.Application.messages.Message;
+import com.adamszablewski.Warehouse.Management.Application.messages.helpers.MessageSender;
 import com.adamszablewski.Warehouse.Management.Application.messages.service.MessageService;
-import com.adamszablewski.Warehouse.Management.Application.product.Product;
 import com.adamszablewski.Warehouse.Management.Application.product.repository.ProductRepository;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrder;
-import com.adamszablewski.Warehouse.Management.Application.salesorders.SalesOrderItem;
+import com.adamszablewski.Warehouse.Management.Application.salesorders.helpers.SalesOrderHelper;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.repository.SalesOrderRepository;
-import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmation;
 import com.adamszablewski.Warehouse.Management.Application.salesorders.soConfirmation.SalesOrderConfirmationRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,14 +24,10 @@ import java.util.Optional;
 @AllArgsConstructor
 public class SalesOrderService {
 
-    SalesOrderRepository salesOrderRepository;
-    InventoryHelper inventoryHelper;
-    InventoryRepository inventoryRepository;
-    ProductRepository productRepository;
-    InventoryService inventoryService;
-    SalesOrderConfirmationRepository salesOrderConfirmationRepository;
-    MessageService messageService;
-
+    private final SalesOrderRepository salesOrderRepository;
+    private final SalesOrderHelper salesOrderHelper;
+    private final InventoryHelper inventoryHelper;
+    private final MessageSender messageSender;
 
     public List<SalesOrder> getAllSalesOrders() {
         return salesOrderRepository.findAll();
@@ -44,13 +38,13 @@ public class SalesOrderService {
     }
 
     public ResponseEntity<String> createSalesOrder(SalesOrder salesOrder) {
-        if (!areItemsValidChecker(salesOrder)) {
+        if (!salesOrderHelper.areItemsValidChecker(salesOrder)) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Some or all of the requested items are not valid");
         }
         salesOrder.setDateReceived(LocalDate.now());
         salesOrder.setInDelivery(false);
         salesOrder.setTransactionClosed(false);
-        salesOrder.setTotalAmount(calculateTotalAmountFromSalesOrder(salesOrder));
+        salesOrder.setTotalAmount(salesOrderHelper.calculateTotalAmountFromSalesOrder(salesOrder));
         salesOrderRepository.save(salesOrder);
         return ResponseEntity.ok("Sales order sent");
     }
@@ -67,7 +61,7 @@ public class SalesOrderService {
         }
         salesOrder.setOrderRecieved(true);
         salesOrderRepository.save(salesOrder);
-        sendSalesOrderConfirmation(salesOrder);
+        messageSender.sendSalesOrderConfirmation(salesOrder);
         inventoryHelper.createAutomaticReordersIfNeeded(salesOrder);
         return ResponseEntity.ok("Status changed to received");
     }
@@ -91,7 +85,7 @@ public class SalesOrderService {
         salesOrder.setInDelivery(true);
         salesOrderRepository.save(salesOrder);
         inventoryHelper.removeFromInventory(salesOrder);
-        sendInDeliveryMail(salesOrder);
+        messageSender.sendInDeliveryMail(salesOrder);
         return ResponseEntity.ok("Status changed to sent");
     }
 
@@ -110,7 +104,6 @@ public class SalesOrderService {
             return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("Status of sales order must first be changed to received," +
                     "already is set as in delivery, or transaction has been already closed");
         }
-
         if (!inventoryHelper.canCompleteOrder(salesOrder)) {
             return ResponseEntity.status(HttpStatus.CONFLICT)
                     .body("Not sufficient amount in inventory to complete order");
@@ -118,122 +111,12 @@ public class SalesOrderService {
         salesOrder.setInDelivery(true);
         salesOrderRepository.save(salesOrder);
         inventoryHelper.removeFromInventory(salesOrder);
-        sendInDeliveryMail(salesOrder, dateOfDelivery);
+        messageSender.sendInDeliveryMail(salesOrder, dateOfDelivery);
         return ResponseEntity.ok("Status changed to sent");
-    }
-
-    private void sendInDeliveryMail (SalesOrder salesOrder){
-        SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
-                .description("some text")
-                .contactEmail(salesOrder.getContactEmail())
-                .contactPerson(salesOrder.getContactPerson())
-                .deliveryAddress(salesOrder.getDeliveryAdress())
-                .company(salesOrder.getCompany())
-                .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
-                .purchaseOrder(salesOrder)
-                .deliveryDate(calculateDeliveryDate(3))
-                .build();
-
-        sendInternalMessageToVendor(salesOrder);
-        //further api call here
-    }
-    private void sendInDeliveryMail (SalesOrder salesOrder, LocalDate date){
-        SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
-                .description("some text")
-                .contactEmail(salesOrder.getContactEmail())
-                .contactPerson(salesOrder.getContactPerson())
-                .deliveryAddress(salesOrder.getDeliveryAdress())
-                .company(salesOrder.getCompany())
-                .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
-                .purchaseOrder(salesOrder)
-                .deliveryDate(date)
-                .build();
-
-        sendInternalMessageToVendor(salesOrder);
-        //further api call here
-    }
-
-    private void sendInternalMessageToVendor(SalesOrder salesOrder){
-        String orderId = salesOrder.getBuyerTrackingId() == null ? salesOrder.getBuyerTrackingId() : String.valueOf(salesOrder.getId());
-        String messageContent = "";
-        if(!salesOrder.isInDelivery() && salesOrder.isOrderRecieved()){
-            messageContent = String.format("Hi, we have received your order %s, as soon as the order is ready to ship we will notify you of " +
-                            "the exact delivery date. For more information please check your inbox for our email."
-                    , orderId);
-        } else if (salesOrder.isInDelivery() && salesOrder.isOrderRecieved() && !salesOrder.isTransactionClosed()) {
-            messageContent = String.format("Hi, your order %s, is now in delivery." +
-                            "For more information please check your inbox for our email."
-                    , orderId);
-        }
-        else if (salesOrder.isTransactionClosed()) {
-            messageContent = String.format("Hi, your order %s, is now delivered." +
-                            "For more information please check your inbox for our email."
-                    , orderId);
-        }
-
-        Message message = Message.builder()
-                .sender("automated")
-                .receiver(salesOrder.getCompany())
-                .message(messageContent)
-                .build();
-        messageService.createMessageBySupport(message, salesOrder.getCompany());
-
-    }
-
-        private SalesOrderConfirmation sendSalesOrderConfirmation (SalesOrder salesOrder){
-            SalesOrderConfirmation salesOrderConfirmation = SalesOrderConfirmation.builder()
-                    .description("some text")
-                    .contactEmail(salesOrder.getContactEmail())
-                    .contactPerson(salesOrder.getContactPerson())
-                    .deliveryAddress(salesOrder.getDeliveryAdress())
-                    .company(salesOrder.getCompany())
-                    .buyerTrackingId(salesOrder.getBuyerTrackingId() == null ? "" : salesOrder.getBuyerTrackingId())
-                    .purchaseOrder(salesOrder)
-                    .deliveryDate(calculateDeliveryDate(14))
-                    .build();
-
-            salesOrderConfirmationRepository.save(salesOrderConfirmation);
-
-            sendInternalMessageToVendor(salesOrder);
-            //further api call here
-            return salesOrderConfirmation;
-        }
-
-        private LocalDate calculateDeliveryDate (int workdays) {
-            LocalDate currentDate = LocalDate.now();
-
-            for (int i = 0; i < workdays; i++) {
-                currentDate = currentDate.plusDays(1);
-                if (currentDate.getDayOfWeek() == DayOfWeek.SATURDAY || currentDate.getDayOfWeek() == DayOfWeek.SUNDAY) {
-                    currentDate = currentDate.plusDays(1);
-                }
-            }
-
-            return currentDate;
         }
 
         public List<SalesOrder> getAllOrdersForCompany (String company){
             return salesOrderRepository.findAllByCompany(company);
-        }
-
-        private double calculateTotalAmountFromSalesOrder (SalesOrder salesOrder){
-            double total = 0;
-            for (SalesOrderItem soi : salesOrder.getItems()) {
-                Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
-                Product product = optionalProduct.get();
-                total += soi.getTotalAmount() * product.getUnitCost();
-            }
-            return total;
-        }
-
-        private boolean areItemsValidChecker (SalesOrder salesOrder){
-            for (SalesOrderItem soi : salesOrder.getItems()) {
-                Optional<Product> optionalProduct = productRepository.findByProductName(soi.getName());
-                if (optionalProduct.isEmpty()) {
-                    return false;
-                }
-            }
-            return true;
         }
 
         public ResponseEntity<String> deleteSalesOrderById ( int id){
@@ -249,18 +132,15 @@ public class SalesOrderService {
             if (optionalSalesOrder.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
             }
-
             SalesOrder salesOrder = optionalSalesOrder.get();
-
             if (!salesOrder.isOrderRecieved() || !salesOrder.isInDelivery() || salesOrder.isTransactionClosed()){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Status of sales order must first be changed to received," +
                         " in delivery, or transaction has been already closed");
             }
-
             salesOrder.setTransactionClosed(true);
             salesOrderRepository.save(salesOrder);
 
-            sendInternalMessageToVendor(salesOrder);
+            messageSender.sendInternalMessageToVendor(salesOrder);
 
             return ResponseEntity.ok("Status changed to closed");
         }

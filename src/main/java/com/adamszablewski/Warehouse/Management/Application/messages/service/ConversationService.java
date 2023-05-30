@@ -17,27 +17,26 @@ import java.util.Optional;
 @AllArgsConstructor
 @Service
 public class ConversationService {
-    ConversationRepository conversationRepository;
-
-    UserInfoRepository userInfoRepository;
+    private final ConversationRepository conversationRepository;
     public Optional<Conversation> getConversationByVendor(String vendor) {
         Optional<Conversation> optionalConversation = conversationRepository.findBySender(vendor);
        return optionalConversation;
 
     }
 
-    public ResponseEntity<String> createConversationByVendor(String vendor) {
-        if (conversationRepository.findBySender(vendor).isPresent()){
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("A conversation with this user already exists");
+    public Conversation createConversationByVendor(String user) {
+        Optional<Conversation> optionalConversation =  conversationRepository.findBySender(user);
+        if (optionalConversation.isPresent()){
+            return optionalConversation.get();
         }
         Conversation conversation = Conversation.builder()
-                .sender(vendor)
+                .sender(user)
                 .messages(new ArrayList<Message>())
                 .replier("support")
                 .build();
 
         conversationRepository.save(conversation);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Conversation created");
+        return conversation;
     }
 }
