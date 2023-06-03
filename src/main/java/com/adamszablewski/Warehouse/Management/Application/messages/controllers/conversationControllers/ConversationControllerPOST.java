@@ -4,6 +4,7 @@ import com.adamszablewski.Warehouse.Management.Application.messages.Conversation
 import com.adamszablewski.Warehouse.Management.Application.messages.service.ConversationService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ public class ConversationControllerPOST {
     private final ConversationService conversationService;
 
     @PostMapping("/conversations/create/customer/{customer}")
+    @PreAuthorize("hasAuthority('ADMIN') or principal.username == #customer")
     public Conversation createConversationByVendor(@PathVariable String customer){
         return conversationService.createConversationByVendor(customer);
     }

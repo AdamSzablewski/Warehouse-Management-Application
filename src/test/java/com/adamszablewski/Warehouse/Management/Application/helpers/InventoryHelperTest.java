@@ -1,4 +1,4 @@
-package com.adamszablewski.Warehouse.Management.Application.inventory;
+package com.adamszablewski.Warehouse.Management.Application.helpers;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;
@@ -19,9 +19,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
 @DataJpaTest

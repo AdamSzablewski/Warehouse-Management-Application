@@ -1,4 +1,4 @@
-package com.adamszablewski.Warehouse.Management.Application.inventory;
+package com.adamszablewski.Warehouse.Management.Application.service;
 
 import com.adamszablewski.Warehouse.Management.Application.Inventory.Inventory;
 import com.adamszablewski.Warehouse.Management.Application.Inventory.repository.InventoryRepository;

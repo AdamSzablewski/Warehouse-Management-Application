@@ -28,14 +28,17 @@ INSERT INTO VENDOR (id, name, address, email, phone) VALUES
   insert into USER_INFO (FIRST_NAME, LAST_NAME, EMAIL, PASSWORD, PHONE_NUMBER)
   values ( 'Adam', 'Sz', 'adam@test.com','$2a$10$J7eFD6Z4mX1NGPeku1467uWlFzx0JjdBB.oBplzVF1pTck5N75jA2', '09893434'),
     ('support', 'support', 'support@test.com','$2a$10$Vy1P7f5epa3wOZHofeADYe2/fkpd.8HiIyyTy6nL5xTqnsgkM29ly', '05678'),
-  ( 'Test', 'T', 'test@test.com','$2a$10$RLhewL4cFkfyzrlY6M3n.OHd8HdzURC8VjdnAh7hlKmZVV5gQDyo.', '01');
+  ( 'Test', 'T', 'test@mail.com','$2a$10$RLhewL4cFkfyzrlY6M3n.OHd8HdzURC8VjdnAh7hlKmZVV5gQDyo.', '01');
 
  insert into ROLE(NAME)
  values('EMPLOYEE');
+  insert into ROLE(NAME)
+  values('CUSTOMER');
  insert into ROLE(NAME)
- values('MANAGER');
+ values('ADMIN');
 
- INSERT INTO user_roles (id, rid) VALUES (1, 3);
- INSERT INTO user_roles (id, rid) VALUES (2, 2);
+ INSERT INTO user_roles (id, rid) VALUES (1, 1);
+ INSERT INTO user_roles (id, rid) VALUES (2, 3);
+  INSERT INTO user_roles (id, rid) VALUES (3, 2);
 
 

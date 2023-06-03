@@ -18,7 +18,6 @@ public class WarehouseRepositoryTest {
 
     @Autowired
     WarehouseRepository warehouseRepository;
-
     @Autowired
     InventoryRepository inventoryRepository;
 

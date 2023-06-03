@@ -7,16 +7,17 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @AllArgsConstructor
+@RequestMapping("/inventories")
 public class InventoryControllerDELETE {
 
     InventoryService inventoryService;
 
-    @DeleteMapping("/inventory/id/{inventory_id}")
+    @DeleteMapping("/id/{inventory_id}")
     public ResponseEntity<String> deleteInventoryById(@PathVariable int inventory_id){
         return inventoryService.deleteInventoryById(inventory_id);
     }
 
-    @DeleteMapping("/inventory/name/{name}")
+    @DeleteMapping("/name/{name}")
     public ResponseEntity<String> deleteInventoryByName(@PathVariable String name){
         return inventoryService.deleteInventoryByName(name);
     }

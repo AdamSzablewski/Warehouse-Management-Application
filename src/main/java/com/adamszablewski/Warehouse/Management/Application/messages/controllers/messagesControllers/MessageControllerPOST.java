@@ -4,24 +4,25 @@ import com.adamszablewski.Warehouse.Management.Application.messages.Message;
 import com.adamszablewski.Warehouse.Management.Application.messages.service.MessageService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @AllArgsConstructor
 @RestController
+@RequestMapping("/conversations/send")
 public class MessageControllerPOST {
 
     MessageService messageService;
 
-    @PostMapping("/conversations/send/vendor/{vendor}")
-    public ResponseEntity<Message> createConversationByVendor(@RequestBody Message message, @PathVariable String vendor){
-        return messageService.createMessageBySender(message, vendor);
+    @PostMapping("/user/{user}")
+    @PreAuthorize("principal.username == #user")
+    public ResponseEntity<Message> createConversationByVendor(@RequestBody Message message, @PathVariable String user){
+        return messageService.createMessageBySender(message, user);
     }
 
-    @PostMapping("/conversations/send/support/{vendor}")
-    public ResponseEntity<Message> createConversationBySupport(@RequestBody Message message, @PathVariable String vendor){
-        return messageService.createMessageBySupport(message, vendor);
+    @PostMapping("/support/{user}")
+    @PreAuthorize("hasAuthority('ADMIN') or hasAuthority('EMPLOYEE')")
+    public ResponseEntity<Message> createConversationBySupport(@RequestBody Message message, @PathVariable String user){
+        return messageService.createMessageBySupport(message, user);
     }
 }

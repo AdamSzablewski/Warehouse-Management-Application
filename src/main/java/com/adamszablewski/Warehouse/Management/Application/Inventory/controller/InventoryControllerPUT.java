@@ -15,7 +15,7 @@ public class InventoryControllerPUT {
 
     InventoryService inventoryService;
 
-    @PutMapping("/inventory/id/{inventory_id}")
+    @PutMapping("/inventories/id/{inventory_id}")
     public ResponseEntity<String> updateInventory(@RequestBody Inventory inventory, @PathVariable int inventory_id){
         return inventoryService.updateInventory(inventory, inventory_id);
     }
